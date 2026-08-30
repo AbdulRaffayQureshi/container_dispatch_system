@@ -52,14 +52,32 @@ def load_api_key() -> str:
     return api_key
 
 
-async def collect_position_reports(
+RELEVANT_MESSAGE_TYPES = {"PositionReport", "ShipStaticData"}
+
+# Maps each MessageType we care about to the key its per-vessel record is stored
+# under in the merged snapshot below.
+_MESSAGE_TYPE_TO_SLOT = {
+    "PositionReport": "position_report",
+    "ShipStaticData": "ship_static_data",
+}
+
+
+async def collect_vessel_messages(
     websocket: websockets.WebSocketClientProtocol, duration_seconds: int
 ) -> tuple[dict[int, dict], int]:
-    """Drain PositionReport messages for a fixed window, deduped by MMSI (latest wins).
+    """Drain PositionReport + ShipStaticData messages for a fixed window.
 
-    Returns (vessels_by_mmsi, total_raw_message_count). Using a plain dict keyed by
-    MMSI and overwriting on every new message for that vessel is what implements the
-    "keep only the latest ping per vessel" dedup rule — no separate dedup pass needed.
+    Deduped by MMSI, latest wins per message type. ShipStaticData is what carries
+    the Destination string the cleaning pipeline (Step 4) needs; PositionReport
+    alone never includes it. A vessel's entry in the returned dict looks like:
+
+        {
+            "mmsi": 123456789,
+            "position_report": {...last PositionReport message or None...},
+            "ship_static_data": {...last ShipStaticData message or None...},
+        }
+
+    Returns (vessels_by_mmsi, total_raw_message_count).
     """
     loop = asyncio.get_event_loop()
     deadline = loop.time() + duration_seconds
@@ -84,7 +102,8 @@ async def collect_position_reports(
         except json.JSONDecodeError:
             continue
 
-        if message.get("MessageType") != "PositionReport":
+        message_type = message.get("MessageType")
+        if message_type not in RELEVANT_MESSAGE_TYPES:
             continue
 
         meta = message.get("MetaData", {})
@@ -92,7 +111,10 @@ async def collect_position_reports(
         if mmsi is None:
             continue
 
-        vessels[mmsi] = message
+        vessel_entry = vessels.setdefault(
+            mmsi, {"mmsi": mmsi, "position_report": None, "ship_static_data": None}
+        )
+        vessel_entry[_MESSAGE_TYPE_TO_SLOT[message_type]] = message
 
     return vessels, raw_message_count
 
@@ -101,7 +123,7 @@ async def run_ingestion(api_key: str) -> None:
     subscribe_message = {
         "APIKey": api_key,
         "BoundingBoxes": BOUNDING_BOXES,
-        "FilterMessageTypes": ["PositionReport"],
+        "FilterMessageTypes": ["PositionReport", "ShipStaticData"],
     }
 
     started_at = datetime.now(timezone.utc)
@@ -116,7 +138,7 @@ async def run_ingestion(api_key: str) -> None:
             f"Subscribed. Bounding box(es): {BOUNDING_BOXES}. "
             f"Listening for {LISTEN_DURATION_SECONDS}s ..."
         )
-        vessels, raw_message_count = await collect_position_reports(
+        vessels, raw_message_count = await collect_vessel_messages(
             websocket, LISTEN_DURATION_SECONDS
         )
         # `async with` closes the connection cleanly on exit from this block.

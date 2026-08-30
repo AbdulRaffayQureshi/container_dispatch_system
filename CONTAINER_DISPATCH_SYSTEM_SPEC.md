@@ -167,7 +167,7 @@ Work through these phases in order. Each phase should be a working, committed st
 *(Update this section as work happens — this is what lets a new chat resume with no lost context.)*
 
 - [x] Repo scaffold
-- [ ] UN/LOCODE reference table
+- [x] UN/LOCODE reference table
 - [ ] Ingestion script
 - [ ] Destination cleaning pipeline
 - [ ] Parquet upsert logic

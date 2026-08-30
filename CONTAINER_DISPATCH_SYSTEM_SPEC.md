@@ -168,7 +168,7 @@ Work through these phases in order. Each phase should be a working, committed st
 
 - [x] Repo scaffold
 - [x] UN/LOCODE reference table
-- [ ] Ingestion script
+- [x] Ingestion script
 - [ ] Destination cleaning pipeline
 - [ ] Parquet upsert logic
 - [ ] GitHub Actions — ingest job

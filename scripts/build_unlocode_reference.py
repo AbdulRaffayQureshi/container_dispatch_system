@@ -1,27 +1,3 @@
-"""
-build_unlocode_reference.py
-
-Step 2 of the Container Dispatch Intelligence Platform build order.
-
-Fetches the UN/LOCODE master code list (maintained by UNECE, mirrored as clean CSV by the
-`datasets/un-locode` project on GitHub), filters it down to maritime seaports with usable
-coordinates, converts those coordinates from UN/LOCODE's degrees-minutes string format to
-decimal lat/lon floats, and writes a small reference CSV that the destination-cleaning
-pipeline (Step 4) will fuzzy-match dirty AIS destination strings against.
-
-Source data:
-    https://github.com/datasets/un-locode  (data/code-list.csv)
-    Original data comes from UNECE: https://unece.org/trade/cefact/UNLOCODE-Download
-    License: ODC-PDDL-1.0 (Open Data Commons Public Domain Dedication and License)
-
-Output:
-    data/reference/unlocode_seaports.csv
-    Columns: unlocode, country, location_code, name, name_ascii, subdivision, latitude, longitude
-
-Usage:
-    python scripts/build_unlocode_reference.py
-"""
-
 from __future__ import annotations
 
 import io

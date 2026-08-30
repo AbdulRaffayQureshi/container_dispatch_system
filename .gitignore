@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment / secrets — never commit AISstream API keys or tokens
+.env
+*.env.local
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Local scratch data that should NOT be treated as the committed "hot state"
+# (only the pruned files named in the spec belong in /data/)
+data/raw_local_test/
+*.tmp
+
+# Streamlit local cache
+.streamlit/secrets.toml

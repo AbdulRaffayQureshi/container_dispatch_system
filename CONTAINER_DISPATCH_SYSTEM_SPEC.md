@@ -171,9 +171,9 @@ Work through these phases in order. Each phase should be a working, committed st
 - [x] Ingestion script
 - [x] Destination cleaning pipeline
 - [x] Parquet upsert logic
-- [ ] GitHub Actions — ingest job
-- [ ] DISPATCH_LOG.md generator
-- [ ] Streamlit MVP deployed
+- [x] GitHub Actions — ingest job
+- [x] DISPATCH_LOG.md generator
+- [x] Streamlit MVP deployed
 - [ ] ETA Delay model v1
 - [ ] Model performance chart + predict job
 - [ ] Static HTML + GitHub Pages

@@ -5,3 +5,5 @@ thefuzz
 python-Levenshtein
 pyarrow
 requests
+streamlit
+pydeck

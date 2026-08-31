@@ -1,0 +1,42 @@
+name: 🚢 Dispatch Pipeline
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 📦 Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: 📡 Ingest Live AIS Data
+        run: python scripts/ingest_ais.py
+        env:
+          AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+
+      - name: 🧹 Clean Destination Strings
+        run: python scripts/clean_destinations.py
+
+      - name: 💾 Upsert Parquet Tables
+        run: python scripts/upsert_parquet.py
+
+      - name: 🚀 Auto-commit Data Updates
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🤖 Automated data refresh'
+          file_pattern: 'data/*.parquet'
+          branch: main

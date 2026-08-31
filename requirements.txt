@@ -1,0 +1,7 @@
+pandas
+websockets
+python-dotenv
+thefuzz
+python-Levenshtein
+pyarrow
+requests

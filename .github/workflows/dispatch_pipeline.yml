@@ -34,9 +34,12 @@ jobs:
       - name: 💾 Upsert Parquet Tables
         run: python scripts/upsert_parquet.py
 
+      - name: 📝 Generate Markdown Log
+        run: python scripts/generate_log.py
+
       - name: 🚀 Auto-commit Data Updates
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: '🤖 Automated data refresh'
-          file_pattern: 'data/*.parquet'
+          commit_message: '🤖 Automated data refresh & log generation'
+          file_pattern: 'data/*.parquet docs/DISPATCH_LOG.md'
           branch: main

@@ -1,35 +1,46 @@
-name: dispatch_pipeline
+name: 🚢 Dispatch Pipeline
 
 on:
   schedule:
     - cron: '0 */4 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   ingest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - name: 📦 Install dependencies
+        run: pip install -r requirements.txt
 
-      - run: python scripts/ingest_ais.py
+      - name: 📡 Ingest AIS Data
+        run: python scripts/ingest_ais.py
         env:
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
 
-      - run: python scripts/clean_destinations.py
+      - name: 🧹 Clean Destinations
+        run: python scripts/clean_destinations.py
 
-      - run: python scripts/upsert_parquet.py
+      - name: 💾 Upsert Parquet
+        run: python scripts/upsert_parquet.py
 
-      - run: python scripts/generate_log.py
+      - name: 📝 Generate Log
+        run: python scripts/generate_log.py
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: 🤖 Auto-commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'Automated data refresh'
+          commit_message: '🤖 Automated data refresh & log generation'
           file_pattern: 'data/*.parquet docs/DISPATCH_LOG.md'
           branch: main
 
@@ -59,11 +70,6 @@ jobs:
                   "name": "🌐 Coverage Zones",
                   "value": "`Malacca` • `Suez` • `English Channel`",
                   "inline": false
-                },
-                {
-                  "name": "⚙️ Trigger",
-                  "value": "'"${{ github.event_name }}"'",
-                  "inline": true
                 },
                 {
                   "name": "🔍 Run Details",

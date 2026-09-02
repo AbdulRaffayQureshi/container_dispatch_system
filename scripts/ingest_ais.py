@@ -1,3 +1,32 @@
+"""
+ingest_ais.py
+
+Step 3 of the Container Dispatch Intelligence Platform build order.
+
+Connects to AISstream.io's free real-time AIS WebSocket, listens for a fixed window
+(default 90 seconds — short enough to run cleanly inside a time-boxed GitHub Actions
+job, per the spec's "WebSocket in CI/CD" data-quality note), collects PositionReport
+messages for vessels inside a bounding box over a high-traffic shipping lane, dedupes
+by MMSI (keeping only the latest ping per vessel), and writes the result to
+data/raw_snapshot.json.
+
+This script does NOT do any destination-string cleaning, UN/LOCODE matching, or
+Parquet upserting — that's Steps 4-5. This is ingestion only: connect, listen, dedupe,
+save raw JSON, exit cleanly.
+
+Auth:
+    Reads AISSTREAM_API_KEY from a local .env file via python-dotenv for local runs.
+    load_dotenv() does not override a variable that's already set in the environment,
+    so in GitHub Actions you can set AISSTREAM_API_KEY as a repo secret / workflow env
+    var and this script picks it up the same way, with no .env file needed there.
+
+    Create a .env file (never commit it — already covered by .gitignore) containing:
+        AISSTREAM_API_KEY=your_key_here
+
+Usage:
+    python scripts/ingest_ais.py
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -27,8 +56,9 @@ SUBSCRIBE_TIMEOUT_SECONDS = 3
 # corners of the box. Swap this for the US West Coast box (commented below) or add
 # a second box to the list to cover both.
 MALACCA_STRAIT_BBOX = [[1.0, 98.0], [6.5, 104.5]]
-# US_WEST_COAST_BBOX = [[32.0, -125.5], [49.0, -117.0]]
-BOUNDING_BOXES = [MALACCA_STRAIT_BBOX]
+ENGLISH_CHANNEL_BBOX = [[49.0, -5.0], [52.0, 2.5]]
+SUEZ_CANAL_BBOX = [[27.0, 32.0], [31.5, 33.5]]
+BOUNDING_BOXES = [MALACCA_STRAIT_BBOX, ENGLISH_CHANNEL_BBOX, SUEZ_CANAL_BBOX]
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = REPO_ROOT / "data" / "raw_snapshot.json"
